@@ -6,7 +6,7 @@
 #+ transform: {
 #+     "id": "?ordo_class_iri",
 #+     "numOfPatients": "?num_of_person",
-#+     "disease": "?disease_name",
+#+     "disease": "?ordo_class_label",
 #+     "$anchor": "id"
 #+   }
 
@@ -16,7 +16,7 @@ PREFIX ordo: <http://www.orpha.net/ORDO/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT (COUNT(DISTINCT ?person) AS ?num_of_person) ?ordo_class_iri ?disease_name WHERE {
+SELECT (COUNT(DISTINCT ?person) AS ?num_of_person) ?ordo_class_iri (STR(?disease_name) AS ?ordo_class_label) WHERE {
     
     VALUES (?input_ordo_iri) {(<http://www.orpha.net/ORDO/Orphanet_275742>)} # Genetic infertility
     
