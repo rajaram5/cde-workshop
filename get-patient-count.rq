@@ -1,0 +1,54 @@
+#+ endpoint: http://ejprd.fair-dtls.surf-hosted.nl:7200/repositories/cde-workshop
+#+ endpoint_in_url: False
+#+ description: Get patient count for a given ordo URL.
+#+ defaults:
+#+   - orphaClass: http://www.orpha.net/ORDO/Orphanet_275742
+#+ transform: {
+#+     "id": "?ordo_class_iri",
+#+     "numOfPatients": "?num_of_person",
+#+     "disease": "?disease_name",
+#+     "$anchor": "id"
+#+   }
+
+PREFIX sio: <http://semanticscience.org/resource/>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX ordo: <http://www.orpha.net/ORDO/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT (COUNT(DISTINCT ?person) AS ?num_of_person) ?ordo_class_iri ?disease_name WHERE {
+    
+    VALUES (?input_ordo_iri) {(<http://www.orpha.net/ORDO/Orphanet_275742>)} # Genetic infertility
+    
+    # GET person(s) and their roles
+    ?person sio:SIO_000228 ?role.
+    
+    # CHECK if one of these roles is `rdf:type` patient role
+    ?role rdf:type obo:OBI_0000093.
+    
+    # GET all the processes where this role is relaized in
+    ?role sio:SIO_000356 ?process.
+    
+    # CHECK if one of these procceses of `rdf:type` medical diagnosis process
+    ?process rdf:type sio:SIO_001001.
+    
+    # GET all the outputs of this process
+    ?process sio:SIO_000229 ?output.
+    
+    # CHECK if one of these output(s) of `rdf:type` information content entity
+    ?output rdf:type sio:SIO_000015.
+    
+    # GET disease linked to this output
+    ?output sio:SIO_000628 ?disease.
+    
+    # Query external triple store to enrich our input disease list
+    SERVICE <http://ejprd.fair-dtls.surf-hosted.nl:7200/repositories/ordo> {
+        # GET all the sub diseases of our input disease class
+        ?ordo_class_iri  rdfs:subClassOf* ?orphaClass_iri;
+                         rdfs:label ?disease_name.
+        FILTER (lang(?disease_name) = 'en')
+    }
+    
+    # CHECK if the diseases the person is diagonosis with is one of the diseases in our list
+    ?disease a ?ordo_class_iri
+} GROUP BY ?ordo_class_iri ?disease_name
