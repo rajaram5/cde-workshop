@@ -44,7 +44,7 @@ SELECT (COUNT(DISTINCT ?person) AS ?num_of_person) ?ordo_class_iri ?disease_name
     # Query external triple store to enrich our input disease list
     SERVICE <http://ejprd.fair-dtls.surf-hosted.nl:7200/repositories/ordo> {
         # GET all the sub diseases of our input disease class
-        ?ordo_class_iri  rdfs:subClassOf* ?orphaClass_iri;
+        ?ordo_class_iri  rdfs:subClassOf* ?_orphaClass_iri;
                          rdfs:label ?disease_name.
         FILTER (lang(?disease_name) = 'en')
     }
